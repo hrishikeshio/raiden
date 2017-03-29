@@ -758,6 +758,7 @@ class RaidenEventHandler(object):
             event = translator.decode_event(
                 log_event['topics'],
                 log_event['data'],
+                log_event['block_number'],
             )
 
             if event is not None:
