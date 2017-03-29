@@ -384,6 +384,7 @@ class Filter(object):
 
         result = list()
         for log_event in filter_changes:
+            print ("log_event, client.py#387",log_event)
             address = address_decoder(log_event['address'])
             data = data_decoder(log_event['data'])
             block_number = data_decoder(log_event['blockNumber'])

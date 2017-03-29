@@ -746,13 +746,12 @@ class RaidenEventHandler(object):
     def poll_event_listener(self, event_name, filter_, translator):
         for log_event in filter_.changes():
             log.debug('New Events', task=event_name)
-            print("raiden_service#757, log_event", log_event)
+            print("raiden_service#757 WTF, log_event", log_event)
             event = translator.decode_event(
                 log_event['topics'],
                 log_event['data'],
-                log_event['block_number'],
             )
-
+            print ("event, does it make sense now?", event)
             if event is not None:
                 originating_contract = log_event['address']
 
