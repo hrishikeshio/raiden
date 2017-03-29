@@ -387,7 +387,6 @@ class Filter(object):
             address = address_decoder(log_event['address'])
             data = data_decoder(log_event['data'])
             block_number = data_decoder(log_event['blockNumber'])
-            print ("got blocknumber in clinet :) ", block_number)
             topics = [
                 decode_topic(topic)
                 for topic in log_event['topics']

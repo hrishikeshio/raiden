@@ -1,11 +1,12 @@
 #!/Users/hhuilgolkar/raiden/raid/bin/python2.7
-
-# -*- coding: utf-8 -*-
+# EASY-INSTALL-ENTRY-SCRIPT: 'pyethapp','console_scripts','pyethapp'
+__requires__ = 'pyethapp'
 import re
 import sys
-
-from pyethapp.app import app
+from pkg_resources import load_entry_point
 
 if __name__ == '__main__':
     sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-    sys.exit(app())
+    sys.exit(
+        load_entry_point('pyethapp', 'console_scripts', 'pyethapp')()
+    )
