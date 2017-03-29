@@ -789,7 +789,8 @@ class RaidenEventHandler(object):
                 type=event['_event_type'],
                 contract=pex(emitting_contract_address_bin),
             )
-
+        log.debug("event happend man")
+        log.debug(event)
         if event['_event_type'] == 'TokenAdded':
             self.event_tokenadded(emitting_contract_address_bin, event)
 

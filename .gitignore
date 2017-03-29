@@ -70,3 +70,8 @@ truffle/.bash_history
 
 # never check in .static-abi.json files
 *.static-abi.json
+
+#vagrant and virtualenv
+Vagrantfile
+.vagrant/
+raid/

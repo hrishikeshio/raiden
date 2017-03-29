@@ -386,6 +386,7 @@ class Filter(object):
         for log_event in filter_changes:
             address = address_decoder(log_event['address'])
             data = data_decoder(log_event['data'])
+            block_number = data_decoder(log_event['blockNumber'])
             topics = [
                 decode_topic(topic)
                 for topic in log_event['topics']
@@ -395,6 +396,7 @@ class Filter(object):
                 'topics': topics,
                 'data': data,
                 'address': address,
+                'block_number': block_number,
             })
 
         return result
@@ -515,11 +517,17 @@ class Token(object):
         # TODO: check that `contract_address` is a netting channel and that
         # `self.address` is one of the participants (maybe add this logic into
         # `NettingChannel` and keep this straight forward)
-
+        estimated_gas = self.proxy.approve.estimate_gas(
+            contract_address,
+            allowance,
+            startgas=startgas,
+            gasprice=gasprice,
+        )
+        print ("nice estimation bra"+estimated_gas)
         transaction_hash = self.proxy.approve.transact(
             contract_address,
             allowance,
-            startgas=self.startgas,
+            startgas=estimated_gas,
             gasprice=self.gasprice,
         )
 
@@ -535,10 +543,18 @@ class Token(object):
         return self.proxy.balanceOf.call(address)
 
     def transfer(self, to_address, amount):
-        transaction_hash = self.proxy.transfer.transact(  # pylint: disable=no-member
+        estimated_gas = self.proxy.transfer.estimate_gas(
             to_address,
             amount,
             startgas=self.startgas,
+            gasprice=self.gasprice,
+        )
+        print ("nice estimation bra"+estimated_gas)
+
+        transaction_hash = self.proxy.transfer.transact(  # pylint: disable=no-member
+            to_address,
+            amount,
+            startgas=estimated_gas,
             gasprice=self.gasprice,
         )
 
@@ -585,9 +601,15 @@ class Registry(object):
         return self.proxy.channelManagerByToken.call(token_address)
 
     def add_token(self, token_address):
-        transaction_hash = self.proxy.addToken.transact(
+        estimated_gas = self.proxy.addToken.estimate_gas(
             token_address,
             startgas=self.startgas,
+            gasprice=self.gasprice,
+        )
+        print("mas estimation"+ estimated_gas)
+        transaction_hash = self.proxy.addToken.transact(
+            token_address,
+            startgas=estimated_gas,
         )
 
         try:
