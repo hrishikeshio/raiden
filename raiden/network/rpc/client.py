@@ -602,14 +602,14 @@ class Registry(object):
         return self.proxy.channelManagerByToken.call(token_address)
 
     def add_token(self, token_address):
-        # estimated_gas = self.proxy.addToken.estimate_gas(
-        #     token_address,
-        #     startgas=self.startgas,
-        # )
+        estimated_gas = self.proxy.addToken.estimate_gas(
+            token_address,
+            startgas=self.startgas,
+        )
 
         transaction_hash = self.proxy.addToken.transact(
             token_address,
-            startgas=self.startgas,
+            startgas=estimated_gas,
         )
 
         try:
