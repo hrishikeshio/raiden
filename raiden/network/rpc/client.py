@@ -378,7 +378,8 @@ class Filter(object):
         # geth could return None
         if filter_changes is None:
             return []
-
+        print ("filter_changes");
+        print (filter_changes);
         result = list()
         for log_event in filter_changes:
             address = address_decoder(log_event['address'])
