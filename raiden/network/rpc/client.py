@@ -972,15 +972,15 @@ class NettingChannel(object):
         kept here to maintain a consistent interface"""
         their_encoded = their_transfer.encode()
 
-        # estimated_gas = self.proxy.close.estimate_gas(
-        #     their_encoded,
-        #     startgas=self.startgas,
-        #     gasprice=self.gasprice,
-        # )
+        estimated_gas = self.proxy.close.estimate_gas(
+            their_encoded,
+            startgas=self.startgas,
+            gasprice=self.gasprice,
+        )
 
         transaction_hash = self.proxy.close.transact(
             their_encoded,
-            startgas=self.startgas,
+            startgas=estimated_gas,
             gasprice=self.gasprice,
         )
         try:
