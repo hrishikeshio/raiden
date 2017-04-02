@@ -385,6 +385,8 @@ class Filter(object):
         for log_event in filter_changes:
             address = address_decoder(log_event['address'])
             data = data_decoder(log_event['data'])
+            block_number = log_event['blockNumber']
+            print block_number
             topics = [
                 decode_topic(topic)
                 for topic in log_event['topics']
@@ -394,6 +396,7 @@ class Filter(object):
                 'topics': topics,
                 'data': data,
                 'address': address,
+                "block_number": block_number,
             })
 
         return result
