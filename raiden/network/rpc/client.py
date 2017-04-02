@@ -715,17 +715,18 @@ class ChannelManager(object):
             other = peer2
         else:
             other = peer1
-        # estimated_gas = self.proxy.newChannel.estimate_gas(
-        #     other,
-        #     settle_timeout,
-        #     startgas=self.startgas,
-        #     gasprice=self.gasprice,
-        # )
+
+        estimated_gas = self.proxy.newChannel.estimate_gas(
+            other,
+            settle_timeout,
+            startgas=self.startgas,
+            gasprice=self.gasprice,
+        )
 
         transaction_hash = self.proxy.newChannel.transact(
             other,
             settle_timeout,
-            startgas=self.startgas,
+            startgas=estimated_gas,
             gasprice=self.gasprice,
         )
 
