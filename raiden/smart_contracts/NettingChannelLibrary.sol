@@ -300,7 +300,7 @@ library NettingChannelLibrary {
     /// @param locked_encoded The lock
     /// @param merkle_proof The merkle proof
     /// @param secret The secret
-    function unlock(
+    function withdraw(
         Data storage self,
         address caller_address,
         bytes locked_encoded,

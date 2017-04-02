@@ -983,7 +983,7 @@ class NettingChannel(object):
             # TODO: check if the ChannelSecretRevealed event was emitted and if
             # it wasn't raise an error
 
-    def unlock(self, our_address, unlock_proofs):
+    def withdraw(self, our_address, unlock_proofs):
         """`our_address` is an argument used only in mock_client.py but is also
         kept here to maintain a consistent interface"""
         # force a list to get the length (could be a generator)
@@ -1000,7 +1000,7 @@ class NettingChannel(object):
 
             merkleproof_encoded = ''.join(merkle_proof)
 
-            transaction_hash = self.proxy.unlock.transact(
+            transaction_hash = self.proxy.withdraw.transact(
                 locked_encoded,
                 merkleproof_encoded,
                 secret,
