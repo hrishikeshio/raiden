@@ -519,17 +519,17 @@ class Token(object):
         # `self.address` is one of the participants (maybe add this logic into
         # `NettingChannel` and keep this straight forward)
 
-        # estimated_gas = self.proxy.approve.estimate_gas(
-        #     contract_address,
-        #     allowance,
-        #     startgas=self.startgas,
-        #     gasprice=self.gasprice,
-        # )
+        estimated_gas = self.proxy.approve.estimate_gas(
+            contract_address,
+            allowance,
+            startgas=self.startgas,
+            gasprice=self.gasprice,
+        )
 
         transaction_hash = self.proxy.approve.transact(
             contract_address,
             allowance,
-            startgas=self.startgas,
+            startgas=estimated_gas,
             gasprice=self.gasprice,
         )
 
