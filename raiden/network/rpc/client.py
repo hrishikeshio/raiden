@@ -1001,15 +1001,15 @@ class NettingChannel(object):
         if their_transfer is not None:
             their_transfer_encoded = their_transfer.encode()
 
-            # estimated_gas = self.proxy.updateTransfer.estimate_gas(
-            #     their_transfer_encoded,
-            #     startgas=self.startgas,
-            #     gasprice=self.gasprice,
-            # )
+            estimated_gas = self.proxy.updateTransfer.estimate_gas(
+                their_transfer_encoded,
+                startgas=self.startgas,
+                gasprice=self.gasprice,
+            )
 
             transaction_hash = self.proxy.updateTransfer.transact(
                 their_transfer_encoded,
-                startgas=self.startgas,
+                startgas=estimated_gas,
                 gasprice=self.gasprice,
             )
 
