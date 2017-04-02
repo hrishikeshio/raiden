@@ -1081,13 +1081,13 @@ class NettingChannel(object):
             )
 
     def settle(self):
-        # estimated_gas = self.proxy.settle.estimate_gas(
-        #     startgas=self.startgas,
-        #     gasprice=self.gasprice,
-        # )
+        estimated_gas = self.proxy.settle.estimate_gas(
+            startgas=self.startgas,
+            gasprice=self.gasprice,
+        )
 
         transaction_hash = self.proxy.settle.transact(
-            startgas=self.startgas,
+            startgas=estimated_gas,
             gasprice=self.gasprice,
         )
 
