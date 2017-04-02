@@ -1045,19 +1045,19 @@ class NettingChannel(object):
 
             merkleproof_encoded = ''.join(merkle_proof)
 
-            # estimated_gas = self.proxy.unlock.estimate_gas(
-            #     locked_encoded,
-            #     merkleproof_encoded,
-            #     secret,
-            #     startgas=self.startgas,
-            #     gasprice=self.gasprice,
-            # )
+            estimated_gas = self.proxy.unlock.estimate_gas(
+                locked_encoded,
+                merkleproof_encoded,
+                secret,
+                startgas=self.startgas,
+                gasprice=self.gasprice,
+            )
 
             transaction_hash = self.proxy.unlock.transact(
                 locked_encoded,
                 merkleproof_encoded,
                 secret,
-                startgas=self.startgas,
+                startgas=estimated_gas,
                 gasprice=self.gasprice,
             )
 
