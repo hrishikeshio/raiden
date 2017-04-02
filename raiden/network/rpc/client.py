@@ -605,13 +605,11 @@ class Registry(object):
         estimated_gas = self.proxy.addToken.estimate_gas(
             token_address,
             startgas=self.startgas,
-            gasprice=self.gasprice,
         )
 
         transaction_hash = self.proxy.addToken.transact(
             token_address,
             startgas=estimated_gas,
-            gasprice=self.gasprice,
         )
 
         try:
