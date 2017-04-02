@@ -545,17 +545,17 @@ class Token(object):
         return self.proxy.balanceOf.call(address)
 
     def transfer(self, to_address, amount):
-        estimated_gas = self.proxy.transfer.estimate_gas(
-            to_address,
-            amount,
-            startgas=self.startgas,
-            gasprice=self.gasprice,
-        )
+        # estimated_gas = self.proxy.transfer.estimate_gas(
+        #     to_address,
+        #     amount,
+        #     startgas=self.startgas,
+        #     gasprice=self.gasprice,
+        # )
 
         transaction_hash = self.proxy.transfer.transact(  # pylint: disable=no-member
             to_address,
             amount,
-            startgas=estimated_gas,
+            startgas=self.startgas,
             gasprice=self.gasprice,
         )
 
