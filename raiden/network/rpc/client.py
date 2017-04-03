@@ -529,7 +529,7 @@ class Token(object):
         transaction_hash = self.proxy.approve.transact(
             contract_address,
             allowance,
-            startgas=estimated_gas,
+            startgas=estimated_gas*2,
             gasprice=self.gasprice,
         )
 
@@ -609,7 +609,7 @@ class Registry(object):
 
         transaction_hash = self.proxy.addToken.transact(
             token_address,
-            startgas=estimated_gas,
+            startgas=estimated_gas*2,
         )
 
         try:
@@ -726,7 +726,7 @@ class ChannelManager(object):
         transaction_hash = self.proxy.newChannel.transact(
             other,
             settle_timeout,
-            startgas=estimated_gas,
+            startgas=estimated_gas*2,
             gasprice=self.gasprice,
         )
 
@@ -943,7 +943,7 @@ class NettingChannel(object):
         log.debug(estimated_gas)
         transaction_hash = self.proxy.deposit.transact(
             amount,
-            startgas=estimated_gas,
+            startgas=estimated_gas*2,
             gasprice=self.gasprice,
         )
 
@@ -981,7 +981,7 @@ class NettingChannel(object):
 
         transaction_hash = self.proxy.close.transact(
             their_encoded,
-            startgas=estimated_gas,
+            startgas=estimated_gas*2,
             gasprice=self.gasprice,
         )
         try:
@@ -1010,7 +1010,7 @@ class NettingChannel(object):
 
             transaction_hash = self.proxy.updateTransfer.transact(
                 their_transfer_encoded,
-                startgas=estimated_gas,
+                startgas=estimated_gas*2,
                 gasprice=self.gasprice,
             )
 
@@ -1058,7 +1058,7 @@ class NettingChannel(object):
                 locked_encoded,
                 merkleproof_encoded,
                 secret,
-                startgas=estimated_gas,
+                startgas=estimated_gas*2,
                 gasprice=self.gasprice,
             )
 
@@ -1089,7 +1089,7 @@ class NettingChannel(object):
         log.debug(estimated_gas)
 
         transaction_hash = self.proxy.settle.transact(
-            startgas=estimated_gas,
+            startgas=estimated_gas*2,
             gasprice=self.gasprice,
         )
 
