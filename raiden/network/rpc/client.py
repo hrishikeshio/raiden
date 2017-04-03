@@ -940,10 +940,10 @@ class NettingChannel(object):
             gasprice=self.gasprice,
         )
 
-        log.error("estimated_gas", estimated_gas)
+        log.debug(estimated_gas)
         transaction_hash = self.proxy.deposit.transact(
             amount,
-            startgas=self.startgas,
+            startgas=estimated_gas,
             gasprice=self.gasprice,
         )
 
@@ -1086,7 +1086,7 @@ class NettingChannel(object):
             startgas=self.startgas,
             gasprice=self.gasprice,
         )
-        log.error(estimated_gas)
+        log.debug(estimated_gas)
 
         transaction_hash = self.proxy.settle.transact(
             startgas=estimated_gas,
