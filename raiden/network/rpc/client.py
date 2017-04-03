@@ -934,12 +934,13 @@ class NettingChannel(object):
                 current_balance,
             ))
 
-        # estimated_gas = self.proxy.deposit.estimate_gas(
-        #     amount,
-        #     startgas=self.startgas,
-        #     gasprice=self.gasprice,
-        # )
+        estimated_gas = self.proxy.deposit.estimate_gas(
+            amount,
+            startgas=self.startgas,
+            gasprice=self.gasprice,
+        )
 
+        log.error("estimated_gas",estimated_gas)
         transaction_hash = self.proxy.deposit.transact(
             amount,
             startgas=self.startgas,
