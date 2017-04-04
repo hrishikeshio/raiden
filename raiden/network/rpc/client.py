@@ -387,6 +387,10 @@ class Filter(object):
             log.error(log_event)
             address = address_decoder(log_event['address'])
             data = data_decoder(log_event['data'])
+            if function == 'eth_getFilterChanges':
+                block_number = log_event['blockNumber']
+            else:
+                block_number = 0
             topics = [
                 decode_topic(topic)
                 for topic in log_event['topics']
@@ -396,6 +400,7 @@ class Filter(object):
                 'topics': topics,
                 'data': data,
                 'address': address,
+                'block_number': block_number,
             })
 
         return result
