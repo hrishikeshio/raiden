@@ -374,12 +374,13 @@ class Filter(object):
 
     def _query_filter(self, function):
         filter_changes = self.client.call(function, self.filter_id_raw)
-        log.debug(function)
-        log.debug(self.filter_id_raw)
-        log.debug(filter_changes)
         # geth could return None
         if filter_changes is None:
             return []
+
+        log.error(function)
+        log.error(self.filter_id_raw)
+        log.error(filter_changes)
 
         result = list()
         for log_event in filter_changes:
