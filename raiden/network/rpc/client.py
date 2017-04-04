@@ -379,8 +379,8 @@ class Filter(object):
         if filter_changes is None:
             return []
         if function=="eth_getFilterChanges":
-            print ("filter_changes");
-            print (filter_changes);
+            log.debug ("filter_changes");
+            log.debug (filter_changes);
         result = list()
         for log_event in filter_changes:
             address = address_decoder(log_event['address'])
