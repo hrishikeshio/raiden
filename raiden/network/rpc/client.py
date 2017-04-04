@@ -374,7 +374,9 @@ class Filter(object):
 
     def _query_filter(self, function):
         filter_changes = self.client.call(function, self.filter_id_raw)
-
+        log.debug(function)
+        log.debug(self.filter_id_raw)
+        log.debug(filter_changes)
         # geth could return None
         if filter_changes is None:
             return []
