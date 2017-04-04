@@ -384,6 +384,7 @@ class Filter(object):
 
         result = list()
         for log_event in filter_changes:
+            log.error(log_event)
             address = address_decoder(log_event['address'])
             data = data_decoder(log_event['data'])
             topics = [
