@@ -198,6 +198,24 @@ def decode_topic(topic):
     return int(topic[2:], 16)
 
 
+def estimate_and_transact(classobject, callobj, *args):
+    """Estimate gas using eth_estimateGas. Multiply by 2 to make sure sufficient gas is provided
+    Limit maximum gas to GAS_LIMIT to avoid exceeding blockgas limit
+    """
+    estimated_gas = callobj.estimate_gas(
+        *args,
+        startgas=classobject.startgas,
+        gasprice=classobject.gasprice
+    )
+    estimated_gas = min(estimated_gas * 2, GAS_LIMIT)
+    transaction_hash = callobj.transact(
+        *args,
+        startgas=estimated_gas,
+        gasprice=classobject.gasprice
+    )
+    return transaction_hash
+
+
 class BlockChainService(object):
     """ Exposes the blockchain's state through JSON-RPC. """
     # pylint: disable=too-many-instance-attributes,unused-argument
@@ -519,11 +537,11 @@ class Token(object):
         # `self.address` is one of the participants (maybe add this logic into
         # `NettingChannel` and keep this straight forward)
 
-        transaction_hash = self.proxy.approve.transact(
+        transaction_hash = estimate_and_transact(
+            self,
+            self.proxy.approve,
             contract_address,
             allowance,
-            startgas=self.startgas,
-            gasprice=self.gasprice,
         )
 
         try:
@@ -538,11 +556,11 @@ class Token(object):
         return self.proxy.balanceOf.call(address)
 
     def transfer(self, to_address, amount):
-        transaction_hash = self.proxy.transfer.transact(  # pylint: disable=no-member
+        transaction_hash = estimate_and_transact(
+            self,
+            self.proxy.transfer,  # pylint: disable=no-member
             to_address,
             amount,
-            startgas=self.startgas,
-            gasprice=self.gasprice,
         )
 
         try:
@@ -588,9 +606,10 @@ class Registry(object):
         return self.proxy.channelManagerByToken.call(token_address)
 
     def add_token(self, token_address):
-        transaction_hash = self.proxy.addToken.transact(
+        transaction_hash = estimate_and_transact(
+            self,
+            self.proxy.addToken,
             token_address,
-            startgas=self.startgas,
         )
 
         try:
@@ -697,11 +716,11 @@ class ChannelManager(object):
         else:
             other = peer1
 
-        transaction_hash = self.proxy.newChannel.transact(
+        transaction_hash = estimate_and_transact(
+            self,
+            self.proxy.newChannel,
             other,
             settle_timeout,
-            startgas=self.startgas,
-            gasprice=self.gasprice,
         )
 
         try:
@@ -908,10 +927,10 @@ class NettingChannel(object):
                 current_balance,
             ))
 
-        transaction_hash = self.proxy.deposit.transact(
+        transaction_hash = estimate_and_transact(
+            self,
+            self.proxy.deposit,
             amount,
-            startgas=self.startgas,
-            gasprice=self.gasprice,
         )
 
         try:
@@ -939,10 +958,10 @@ class NettingChannel(object):
         """`our_address` is an argument used only in mock_client.py but is also
         kept here to maintain a consistent interface"""
         their_encoded = their_transfer.encode()
-        transaction_hash = self.proxy.close.transact(
+        transaction_hash = estimate_and_transact(
+            self,
+            self.proxy.close,
             their_encoded,
-            startgas=self.startgas,
-            gasprice=self.gasprice,
         )
         try:
             self.client.poll(transaction_hash.decode('hex'), timeout=self.poll_timeout)
@@ -962,10 +981,10 @@ class NettingChannel(object):
         if their_transfer is not None:
             their_transfer_encoded = their_transfer.encode()
 
-            transaction_hash = self.proxy.updateTransfer.transact(
+            transaction_hash = estimate_and_transact(
+                self,
+                self.proxy.updateTransfer,
                 their_transfer_encoded,
-                startgas=self.startgas,
-                gasprice=self.gasprice,
             )
 
             try:
@@ -985,7 +1004,8 @@ class NettingChannel(object):
 
     def withdraw(self, our_address, unlock_proofs):
         """`our_address` is an argument used only in mock_client.py but is also
-        kept here to maintain a consistent interface"""
+        kept here to maintain a consistent interface
+        """
         # force a list to get the length (could be a generator)
         unlock_proofs = list(unlock_proofs)
         log.info(
@@ -1000,12 +1020,12 @@ class NettingChannel(object):
 
             merkleproof_encoded = ''.join(merkle_proof)
 
-            transaction_hash = self.proxy.withdraw.transact(
+            transaction_hash = estimate_and_transact(
+                self,
+                self.proxy.unlock,
                 locked_encoded,
                 merkleproof_encoded,
                 secret,
-                startgas=self.startgas,
-                gasprice=self.gasprice,
             )
 
             try:
@@ -1028,9 +1048,9 @@ class NettingChannel(object):
             )
 
     def settle(self):
-        transaction_hash = self.proxy.settle.transact(
-            startgas=self.startgas,
-            gasprice=self.gasprice,
+        transaction_hash = estimate_and_transact(
+            self,
+            self.proxy.settle,
         )
 
         try:

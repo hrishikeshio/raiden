@@ -6,7 +6,6 @@ from flask_restful import Api, abort
 from webargs.flaskparser import parser
 
 from raiden.api.v1.encoding import (
-    EventsListSchema,
     ChannelSchema,
     ChannelListSchema,
     TokensListSchema,
@@ -19,9 +18,24 @@ from raiden.api.v1.resources import (
     ChannelsResourceByChannelAddress,
     TokensResource,
     PartnersResourceByTokenAddress,
+    NetworkEventsResource,
+    TokenEventsResource,
+    ChannelEventsResource,
+    TokenSwapsResource,
 )
-from raiden.api.objects import EventsList, ChannelList, TokensList, PartnersPerTokenList
+from raiden.api.objects import ChannelList, TokensList, PartnersPerTokenList
 from raiden.utils import channel_to_api_dict
+
+
+def normalize_events_list(old_list):
+    """Internally the `event_type` key is prefixed with underscore but the API
+    returns an object without that prefix"""
+    new_list = []
+    for _event in old_list:
+        new_event = dict(_event)
+        new_event['event_type'] = new_event.pop('_event_type')
+        new_list.append(new_event)
+    return new_list
 
 
 class APIServer(object):
@@ -77,6 +91,19 @@ class APIServer(object):
             PartnersResourceByTokenAddress,
             '/tokens/<hexaddress:token_address>/partners'
         )
+        self.add_resource(NetworkEventsResource, '/events/network')
+        self.add_resource(
+            TokenEventsResource,
+            '/events/tokens/<hexaddress:token_address>'
+        )
+        self.add_resource(
+            ChannelEventsResource,
+            '/events/channels/<hexaddress:channel_address>'
+        )
+        self.add_resource(
+            TokenSwapsResource,
+            '/token_swaps/<hexaddress:target_address>/<int:identifier>'
+        )
 
     def _register_type_converters(self, additional_mapping=None):
         # an additional mapping concats to class-mapping and will overwrite existing keys
@@ -113,7 +140,6 @@ class RestAPI(object):
         self.raiden_api = raiden_api
         self.channel_schema = ChannelSchema()
         self.channel_list_schema = ChannelListSchema()
-        self.events_list_schema = EventsListSchema()
         self.tokens_list_schema = TokensListSchema()
         self.partner_per_token_list_schema = PartnersPerTokenListSchema()
 
@@ -176,13 +202,23 @@ class RestAPI(object):
         result = self.tokens_list_schema.dumps(tokens_list)
         return result
 
-    def get_new_events(self):
-        raiden_service_result = self.get_new_events()
-        assert isinstance(raiden_service_result, list)
+    def get_network_events(self, from_block, to_block):
+        raiden_service_result = self.raiden_api.get_network_events(
+            from_block, to_block
+        )
+        return normalize_events_list(raiden_service_result)
 
-        events_list = EventsList(raiden_service_result)
-        result = self.events_list_schema.dumps(events_list)
-        return result
+    def get_token_network_events(self, token_address, from_block, to_block):
+        raiden_service_result = self.raiden_api.get_token_network_events(
+            token_address, from_block, to_block
+        )
+        return normalize_events_list(raiden_service_result)
+
+    def get_channel_events(self, channel_address, from_block, to_block):
+        raiden_service_result = self.raiden_api.get_channel_events(
+            channel_address, from_block, to_block
+        )
+        return normalize_events_list(raiden_service_result)
 
     def get_channel(self, channel_address):
         channel = self.raiden_api.get_channel(channel_address)
@@ -224,7 +260,7 @@ class RestAPI(object):
         if balance is not None:
             if current_state != 'open':
                 return make_response(
-                    'Can\'t deposit on a closed channel',
+                    "Can't deposit on a closed channel",
                     httplib.CONFLICT,
                 )
             raiden_service_result = self.raiden_api.deposit(
@@ -258,10 +294,45 @@ class RestAPI(object):
                 )
                 return self.channel_schema.dumps(channel_to_api_dict(raiden_service_result))
             else:
+                # should never happen, channel_state is validated in the schema
                 return make_response(
                     'Provided invalid channel state {}'.format(state),
                     httplib.BAD_REQUEST,
                 )
+
+    def token_swap(
+            self,
+            target_address,
+            identifier,
+            role,
+            sending_token,
+            sending_amount,
+            receiving_token,
+            receiving_amount):
+
+        if role == 'maker':
+            self.raiden_api.exchange(
+                from_token=sending_token,
+                from_amount=sending_amount,
+                to_token=receiving_token,
+                to_amount=receiving_amount,
+                target_address=target_address,
+            )
+        elif role == 'taker':
+            self.raiden_api.expect_exchange(
+                identifier=identifier,
+                from_token=sending_token,
+                from_amount=sending_amount,
+                to_token=receiving_token,
+                to_amount=receiving_amount,
+                target_address=target_address,
+            )
+        else:
+            # should never happen, role is validated in the schema
+            return make_response(
+                'Provided invalid token swap role {}'.format(role),
+                httplib.BAD_REQUEST,
+            )
 
 
 @parser.error_handler

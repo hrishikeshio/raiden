@@ -357,23 +357,6 @@ class RaidenAPI(object):
 
         raise ValueError("Channel not found")
 
-    def get_new_events(self):
-        queue = self.raiden.event_queue
-
-        while queue.empty():
-            gevent.sleep(0.5)
-            # blocks until item in queue
-
-        event_list = []
-        while True:
-            try:
-                result = queue.get(False, None)
-                event_list.append(result)
-            except QueueEmpty:
-                break
-
-        return event_list
-
     def open(
             self,
             token_address,
@@ -434,13 +417,8 @@ class RaidenAPI(object):
         return channel
 
     def exchange(self, from_token, from_amount, to_token, to_amount, target_address):
-        from_token_bin = safe_address_decode(from_token)
-        to_token_bin = safe_address_decode(to_token)
-        target_bin = safe_address_decode(target_address)
-
         try:
-            self.raiden.get_manager_by_token_address(from_token_bin)
-            self.raiden.get_manager_by_token_address(from_token_bin)
+            self.raiden.get_manager_by_token_address(from_token)
         except UnknownTokenAddress as e:
             log.error(
                 'no token manager for %s',
@@ -450,11 +428,11 @@ class RaidenAPI(object):
 
         task = StartExchangeTask(
             self.raiden,
-            from_token_bin,
+            from_token,
             from_amount,
-            to_token_bin,
+            to_token,
             to_amount,
-            target_bin,
+            target_address,
         )
         task.start()
         return task
@@ -634,6 +612,26 @@ class RaidenAPI(object):
         netting_channel.settle()
         return channel
 
+    def get_token_network_events(self, token_address, from_block, to_block=''):
+        return self.raiden.event_handler.get_token_network_events(
+            token_address,
+            from_block,
+            to_block
+        )
+
+    def get_network_events(self, from_block, to_block=''):
+        return self.raiden.event_handler.get_network_events(
+            from_block,
+            to_block
+        )
+
+    def get_channel_events(self, channel_address, from_block, to_block=''):
+        return self.raiden.event_handler.get_channel_events(
+            channel_address,
+            from_block,
+            to_block
+        )
+
 
 class RaidenMessageHandler(object):
     """ Class responsible to handle the protocol messages.
@@ -740,7 +738,7 @@ class RaidenEventHandler(object):
         self.event_listeners = list()
         self.logged_events = dict()
 
-    def get_channel_new_events(self, token_address, from_block, to_block=''):
+    def get_token_network_events(self, token_address, from_block, to_block=''):
         # Note: Issue #452 (https://github.com/raiden-network/raiden/issues/452)
         # tracks a suggested TODO, which will reduce the 3 RPC calls here to only
         # one using `eth_getLogs`. It will require changes in all testing frameworks
@@ -757,7 +755,7 @@ class RaidenEventHandler(object):
                 filter_.uninstall()
         return [translator.decode_event(event['topics'], event['data']) for event in events]
 
-    def get_token_added_events(self, from_block, to_block=''):
+    def get_network_events(self, from_block, to_block=''):
         # Note: Issue #452 (https://github.com/raiden-network/raiden/issues/452)
         # tracks a suggested TODO, which will reduce the 3 RPC calls here to only
         # one using `eth_getLogs`. It will require changes in all testing frameworks
@@ -774,7 +772,7 @@ class RaidenEventHandler(object):
                 filter_.uninstall()
         return [translator.decode_event(event['topics'], event['data']) for event in events]
 
-    def get_channel_event(self, channel_address, event_id, from_block, to_block=''):
+    def get_channel_events(self, channel_address, event_id, from_block, to_block=''):
         # Note: Issue #452 (https://github.com/raiden-network/raiden/issues/452)
         # tracks a suggested TODO, which will reduce the 3 RPC calls here to only
         # one using `eth_getLogs`. It will require changes in all testing frameworks
