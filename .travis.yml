@@ -12,7 +12,7 @@ env:
     - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.10/solc'
     - SOLC_VERSION='0.4.10'
 
-    - PARITY_URL = 'http://d1h4xl4cr1h0mo.cloudfront.net/v1.6.5/x86_64-unknown-linux-gnu/parity_1.6.5_amd64.deb'
+    - PARITY_URL = 'http://d1h4xl4cr1h0mo.cloudfront.net/v1.6.5/x86_64-unknown-linux-gnu/parity'
     - PARITY_VERSION = '1.6.5'
 
   matrix:
