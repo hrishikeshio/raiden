@@ -11,14 +11,20 @@ env:
     - GETH_VERSION='1.5.5'
     - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.10/solc'
     - SOLC_VERSION='0.4.10'
+
+    - PARITY_URL = 'http://d1h4xl4cr1h0mo.cloudfront.net/v1.6.5/x86_64-unknown-linux-gnu/parity_1.6.5_amd64.deb'
+    - PARITY_VERSION = '1.6.5'
+
   matrix:
     - TEST_TYPE='unit'
     - TEST_TYPE='smart_contracts'
 
     - TEST_TYPE='integration' BLOCKCHAIN_TYPE='--blockchain-type=tester'
     - TEST_TYPE='integration' BLOCKCHAIN_TYPE='--blockchain-type=geth --blockchain-cache'
+    - TEST_TYPE='integration' BLOCKCHAIN_TYPE='--blockchain-type=parity --blockchain-cache'
     - TEST_TYPE='api' BLOCKCHAIN_TYPE='--blockchain-type=tester'
     - TEST_TYPE='api' BLOCKCHAIN_TYPE='--blockchain-type=geth --blockchain-cache'
+    - TEST_TYPE='api' BLOCKCHAIN_TYPE='--blockchain-type=parity --blockchain-cache'
 
 cache:
   pip: true
@@ -31,6 +37,7 @@ before_install:
   - mkdir -p $HOME/.bin
   - export PATH=$PATH:$HOME/.bin
   - ./.travis/download_geth.sh
+  - ./.travis/download_parity.sh
   - ./.travis/download_solc.sh
 
 install:

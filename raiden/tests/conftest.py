@@ -139,7 +139,7 @@ PBKDF2_CONSTANTS['c'] = 100
 def pytest_addoption(parser):
     parser.addoption(
         '--blockchain-type',
-        choices=['geth', 'tester', 'mock'],
+        choices=['geth', 'parity', 'tester', 'mock'],
         default='geth',
     )
 
