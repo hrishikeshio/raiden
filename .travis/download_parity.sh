@@ -42,13 +42,23 @@ warn() {
 [ -z "${PARITY_URL}" ] && fail 'missing PARITY_URL'
 [ -z "${PARITY_VERSION}" ] && fail 'missing PARITY_VERSION'
 
-# if [ ! -x $HOME/.bin/geth-${GETH_VERSION} ]; then
-#     mkdir -p $HOME/.bin
+if [ ! -x $HOME/.bin/parity-${PARITY_VERSION} ]; then
+    mkdir -p $HOME/.bin
 
     TEMP=$(mktemp -d)
     cd $TEMP
-    wget -O parity.deb $PARITY_URL
-    sudo dpkg -i -y parity.deb
+    wget -O parity $PARITY_URL
+
+    install -m 755 parity $HOME/.bin/parity-${PARITY_VERSION}
 
     success "parity ${PARITY_VERSION} installed"
+else
+    info 'using cached parity'
+fi
+
+
+# always recreate the symlink since we dont know if it's pointing to a different
+# version
+[ -h $HOME/.bin/parity ] && unlink $HOME/.bin/parity
+ln -s $HOME/.bin/parity-${PARITY_VERSION} $HOME/.bin/parity
 
