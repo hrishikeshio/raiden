@@ -231,7 +231,66 @@ Possible Responses
 | 500 Server Error | Internal Raiden node error|
 +------------------+---------------------------+
 
+Token Swaps
+------------
 
+You can perform a token swap by using the ``token_swaps`` endpoint. A swap consists of two users agreeing on atomically exchanging two different tokens at a particular exchange rate.
+
+By making a ``PUT`` request to ``/api/<version>/token_swaps/<target_address>/<identifier>`` you can either initiate or participate in a token swap with a specific user. The details, along with the role, come as part of the json payload.
+
+Example Request
+^^^^^^^^^^^^^^^
+
+The maker (in our case ``0xbbc5ee8be95683983df67260b0ab033c237bde60``) would do
+
+``PUT /api/1/token_swaps/0x61c808d82a3ac53231750dadc13c777b59310bd9/1337``
+
+with payload
+::
+
+    {
+        "role": "maker",
+        "sending_amount": 42,
+        "sending_token": "0xea674fdde714fd979de3edf0f56aa9716b898ec8",
+        "receiving_amount": 76,
+        "receiving_token": "0x2a65aca4d5fc5b5c859090a6c34d164135398226"
+    }
+
+and the taker (in our case ``0x61c808d82a3ac53231750dadc13c777b59310bd9``) would use:
+``PUT /api/1/token_swaps/0xbbc5ee8be95683983df67260b0ab033c237bde60/1337``
+
+::
+
+    {
+        "role": "taker",
+        "sending_amount": 76,
+        "sending_token": "0x2a65aca4d5fc5b5c859090a6c34d164135398226",
+        "receiving_amount": 42,
+        "receiving_token": "0xea674fdde714fd979de3edf0f56aa9716b898ec8"
+    }
+
+Please note that the sending/reveiving amount and token is always from the perspective of each node. That is why you see the reverse values in the two different examples.
+
+Example Response
+^^^^^^^^^^^^^^^^
+``200 OK``
+
+Possible Responses
+^^^^^^^^^^^^^^^^^^
+
++------------------+---------------------------+
+| HTTP Code        | Condition                 |
++==================+===========================+
+| 201 Created      | For succesful Creation    |
++------------------+---------------------------+
+| 400 Bad Request  | If the provided json is in|
+|                  | some way malformed        |
++------------------+---------------------------+
+| 408 Request      | If the token swap         |
+|     Timeout      | operation times out       |
++------------------+---------------------------+
+| 500 Server Error | Internal Raiden node error|
++------------------+---------------------------+
 
 Channel Management
 ==================
@@ -427,6 +486,68 @@ Possible Responses
 | 500 Server Error | Internal Raiden node error|
 +------------------+---------------------------+
 
+Transfers
+=========
+
+Initiating a Transfer
+---------------------
+
+You can create a new transfer by making a ``POST`` to the following endpoint along with a json payload containing
+the transfer details such as amount and identifier. Identifier is optional.
+
+``POST /api/<version>/transfers/<token_address>/<target_address>``
+
+The request will only return once the transfer either succeeded or failed. A transfer can fail due to a lock's expiration.
+
+Example Request
+^^^^^^^^^^^^^^^
+
+``POST /api/1/transfers/0x2a65aca4d5fc5b5c859090a6c34d164135398226/0x61c808d82a3ac53231750dadc13c777b59310bd9``
+
+with payload::
+  {
+      "amount": 200,
+      "identifier": 42
+  }
+
+
+Example Response
+^^^^^^^^^^^^^^^^
+200 OK with payload
+::
+
+    {
+        "initiator_address": "0x2a65aca4d5fc5b5c859090a6c34d164135398226",
+        "target_address": "0x61c808d82a3ac53231750dadc13c777b59310bd9",
+        "token_address": "0xea674fdde714fd979de3edf0f56aa9716b898ec8",
+        "amount": 200,
+        "identifier": 42
+    }
+
+
+Possible Responses
+^^^^^^^^^^^^^^^^^^
+
++------------------+---------------------------+
+| HTTP Code        | Condition                 |
++==================+===========================+
+| 200 OK           | For a succesful Transfer  |
+|                  |      creation             |
++------------------+---------------------------+
+| 400 Bad Request  | If the provided json is in|
+|                  | some way malformed        |
++------------------+---------------------------+
+| 408 Timeout      | If a timeout happened     |
+|                  | during the transfer       |
++------------------+---------------------------+
+| 409 Conflict     | If the transfer can't     |
+|                  | start due to insufficient |
+|                  | balance                   |
++------------------+---------------------------+
+| 500 Server Error | Internal Raiden node error|
++------------------+---------------------------+
+
+
 Querying Events
 ================
 
@@ -442,14 +563,17 @@ to signify the block from which you would like the events to be returned.
 Querying general network events
 ---------------------------------
 
+.. NOTE::
+   The network registry used is the default registry. The default registry is
+   preconfigured and can be edited from the raiden configuration file.
 
-You can query for non-channel specific events by making a ``GET`` request to the
-endpoint of the token registry contract. ``GET /api/<version>/events/network/<token_registry_address>``
+You can query for registry network events by making a ``GET`` request to the
+following endpoint. ``GET /api/<version>/events/network``
 
 Example Request
 ^^^^^^^^^^^^^^^
 
-``GET /api/1/events/network/0x4bb96091ee9d802ed039c4d1a5f6216f90f81b01``
+``GET /api/1/events/network``
 
 Example Response
 ^^^^^^^^^^^^^^^^
@@ -465,6 +589,55 @@ Example Response
             "event_type": "TokenAdded",
             "token_address": "0x91337a300e0361bddb2e377dd4e88ccb7796663d"
             "channel_manager_address": "0xc0ea08a2d404d3172d2add29a45be56da40e2949"
+        }, {
+            ...
+        }
+        ...
+    ]
+
+Possible Responses
+^^^^^^^^^^^^^^^^^^
+
++------------------+---------------------------+
+| HTTP Code        | Condition                 |
++==================+===========================+
+| 200 OK           | For succesful Query       |
++------------------+---------------------------+
+| 400 Bad Request  | If the provided query     |
+|                  | string is  malformed      |
++------------------+---------------------------+
+| 500 Server Error | Internal Raiden node error|
++------------------+---------------------------+
+
+
+Querying token network events
+------------------------------
+
+You can query for all new channels opened for a token by making a ``GET`` request to the following endpoint. ``GET /api/<version>/events/tokens/<token_address>``
+
+Example Request
+^^^^^^^^^^^^^^^
+
+``GET /api/1/events/tokens/0x61c808d82a3ac53231750dadc13c777b59310bd9``
+
+Example Response
+^^^^^^^^^^^^^^^^
+``200 OK`` with
+::
+
+    [
+        {
+            "event_type": "ChannelNew",
+            "settle_timeout": 10,
+            "netting_channel": "0xc0ea08a2d404d3172d2add29a45be56da40e2949",
+            "participant1": "0x4894a542053248e0c504e3def2048c08f73e1ca6",
+            "participant2": "0x356857Cd22CBEFccDa4e96AF13b408623473237A",
+        }, {
+            "event_type": "ChannelNew",
+            "settle_timeout": 15,
+            "netting_channel": "0x61c808d82a3ac53231750dadc13c777b59310bd9",
+            "participant1": "0xea674fdde714fd979de3edf0f56aa9716b898ec8",
+            "participant2": "0xc7262f1447fcb2f75ab14b2a28deed6006eea95b",
         }, {
             ...
         }

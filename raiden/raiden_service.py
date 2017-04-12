@@ -3,7 +3,8 @@ import logging
 from collections import namedtuple
 
 import gevent
-from gevent.queue import Empty as QueueEmpty
+import random
+
 from ethereum import slogging
 from ethereum.abi import ContractTranslator
 from ethereum.utils import encode_hex
@@ -33,6 +34,7 @@ from raiden.utils import (
     privatekey_to_address,
     safe_address_decode,
     GLOBAL_CTX,
+    sha3,
 )
 
 
@@ -357,22 +359,21 @@ class RaidenAPI(object):
 
         raise ValueError("Channel not found")
 
-    def get_new_events(self):
-        queue = self.raiden.event_queue
-
-        while queue.empty():
-            gevent.sleep(0.5)
-            # blocks until item in queue
-
-        event_list = []
-        while True:
-            try:
-                result = queue.get(False, None)
-                event_list.append(result)
-            except QueueEmpty:
-                break
-
-        return event_list
+    def create_default_identifier(self, target, token_address):
+        """
+        The default message identifier value is the first 8 bytes of the sha3 of:
+            - Our Address
+            - Our target address
+            - The token address
+            - A random 8 byte number for uniqueness
+        """
+        hash_ = sha3("{}{}{}{}".format(
+            self.raiden.address,
+            target,
+            token_address,
+            random.randint(0, 18446744073709551614L)
+        ))
+        return int(hash_[0:8].encode('hex'), 16)
 
     def open(
             self,
@@ -434,13 +435,8 @@ class RaidenAPI(object):
         return channel
 
     def exchange(self, from_token, from_amount, to_token, to_amount, target_address):
-        from_token_bin = safe_address_decode(from_token)
-        to_token_bin = safe_address_decode(to_token)
-        target_bin = safe_address_decode(target_address)
-
         try:
-            self.raiden.get_manager_by_token_address(from_token_bin)
-            self.raiden.get_manager_by_token_address(from_token_bin)
+            self.raiden.get_manager_by_token_address(from_token)
         except UnknownTokenAddress as e:
             log.error(
                 'no token manager for %s',
@@ -450,11 +446,11 @@ class RaidenAPI(object):
 
         task = StartExchangeTask(
             self.raiden,
-            from_token_bin,
+            from_token,
             from_amount,
-            to_token_bin,
+            to_token,
             to_amount,
-            target_bin,
+            target_address,
         )
         task.start()
         return task
@@ -560,6 +556,9 @@ class RaidenAPI(object):
         if amount <= 0:
             raise InvalidAmount('Amount negative')
 
+        if identifier is None:
+            identifier = self.create_default_identifier(target, token_address)
+
         token_address_bin = safe_address_decode(token_address)
         target_bin = safe_address_decode(target)
 
@@ -633,6 +632,26 @@ class RaidenAPI(object):
 
         netting_channel.settle()
         return channel
+
+    def get_token_network_events(self, token_address, from_block, to_block=''):
+        return self.raiden.event_handler.get_token_network_events(
+            token_address,
+            from_block,
+            to_block
+        )
+
+    def get_network_events(self, from_block, to_block=''):
+        return self.raiden.event_handler.get_network_events(
+            from_block,
+            to_block
+        )
+
+    def get_channel_events(self, channel_address, from_block, to_block=''):
+        return self.raiden.event_handler.get_channel_events(
+            channel_address,
+            from_block,
+            to_block
+        )
 
 
 class RaidenMessageHandler(object):
@@ -740,7 +759,7 @@ class RaidenEventHandler(object):
         self.event_listeners = list()
         self.logged_events = dict()
 
-    def get_channel_new_events(self, token_address, from_block, to_block=''):
+    def get_token_network_events(self, token_address, from_block, to_block=''):
         # Note: Issue #452 (https://github.com/raiden-network/raiden/issues/452)
         # tracks a suggested TODO, which will reduce the 3 RPC calls here to only
         # one using `eth_getLogs`. It will require changes in all testing frameworks
@@ -757,7 +776,7 @@ class RaidenEventHandler(object):
                 filter_.uninstall()
         return [translator.decode_event(event['topics'], event['data']) for event in events]
 
-    def get_token_added_events(self, from_block, to_block=''):
+    def get_network_events(self, from_block, to_block=''):
         # Note: Issue #452 (https://github.com/raiden-network/raiden/issues/452)
         # tracks a suggested TODO, which will reduce the 3 RPC calls here to only
         # one using `eth_getLogs`. It will require changes in all testing frameworks
@@ -774,7 +793,7 @@ class RaidenEventHandler(object):
                 filter_.uninstall()
         return [translator.decode_event(event['topics'], event['data']) for event in events]
 
-    def get_channel_event(self, channel_address, event_id, from_block, to_block=''):
+    def get_channel_events(self, channel_address, event_id, from_block, to_block=''):
         # Note: Issue #452 (https://github.com/raiden-network/raiden/issues/452)
         # tracks a suggested TODO, which will reduce the 3 RPC calls here to only
         # one using `eth_getLogs`. It will require changes in all testing frameworks

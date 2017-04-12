@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import json
+
+from pyethapp.jsonrpc import address_decoder
+
 from raiden.utils import make_address
 from raiden.channel import Channel, ChannelEndState, ChannelExternalState
 from raiden.api.objects import ChannelList
 from raiden.api.v1.encoding import (
-    EventsListSchema,
     ChannelSchema,
     ChannelListSchema
 )
@@ -34,12 +36,96 @@ def decode_response(response):
 class ApiTestContext():
 
     def __init__(self, reveal_timeout):
+        self.events = list()
         self.channels = []
         self.tokens = set()
         self.channel_schema = ChannelSchema()
         self.channel_list_schema = ChannelListSchema()
-        self.events_list_schema = EventsListSchema()
         self.reveal_timeout = reveal_timeout
+
+    def add_events(self, events):
+        self.events += events
+
+    def specify_token_for_channelnew(self, token_address):
+        """Since it's not part of the event but part of the querying and we
+        mock the interface we should check that the token address properly makes
+        it through the REST api"""
+        self.token_for_channelnew = address_decoder(token_address)
+
+    def specify_channel_for_events(self, channel_address):
+        """Since it's not part of the event but part of the querying and we
+        mock the interface we should check that the channel address properly
+        makes it through the REST api"""
+        self.channel_for_events = address_decoder(channel_address)
+
+    def specify_tokenswap_input(self, tokenswap_input, target_address, identifier):
+        """We don't test the actual tokenswap but only that the input makes it
+        to the backend in the expected format"""
+        self.tokenswap_input = dict(tokenswap_input)
+        self.tokenswap_input['sending_token'] = address_decoder(
+            self.tokenswap_input['sending_token']
+        )
+        self.tokenswap_input['receiving_token'] = address_decoder(
+            self.tokenswap_input['receiving_token']
+        )
+        self.tokenswap_input['identifier'] = identifier
+        self.tokenswap_input['target_address'] = address_decoder(target_address)
+
+    def get_network_events(self, from_block, to_block):
+        return_list = list()
+        for event in self.events:
+            expected_event_type = event['_event_type'] == 'TokenAdded'
+            in_block_range = (
+                event['block_number'] >= from_block and
+                event['block_number'] <= to_block
+            )
+            if expected_event_type and in_block_range:
+                return_list.append(event)
+
+        return return_list
+
+    def get_token_network_events(self, token_address, from_block, to_block):
+        return_list = list()
+        if token_address != self.token_for_channelnew:
+            raise ValueError(
+                'Unexpected token address: "{}"  during channelnew '
+                'query'.format(token_address)
+            )
+        for event in self.events:
+            expected_event_type = event['_event_type'] == 'ChannelNew'
+            in_block_range = (
+                event['block_number'] >= from_block and
+                event['block_number'] <= to_block
+            )
+            if expected_event_type and in_block_range:
+                return_list.append(event)
+
+        return return_list
+
+    def get_channel_events(self, channel_address, from_block, to_block):
+        return_list = list()
+        if channel_address != self.channel_for_events:
+            raise ValueError(
+                'Unexpected channel address: "{}"  during channel events '
+                'query'.format(channel_address)
+            )
+
+        for event in self.events:
+            is_channel_event = (
+                event['_event_type'] == 'ChannelNewBalance' or
+                event['_event_type'] == 'ChannelClosed' or
+                event['_event_type'] == 'TransferUpdated' or
+                event['_event_type'] == 'ChannelSettled' or
+                event['_event_type'] == 'ChannelSecretRevealed'
+            )
+            in_block_range = (
+                event['block_number'] >= from_block and
+                event['block_number'] <= to_block
+            )
+            if is_channel_event and in_block_range:
+                return_list.append(event)
+
+        return return_list
 
     def make_channel(
             self,
@@ -147,3 +233,29 @@ class ApiTestContext():
 
     def get_channel(self, channel_address):
         return self.find_channel_by_address(channel_address)
+
+    def _check_tokenswap_input(self, argname, input_argname, kwargs):
+        if kwargs[argname] != self.tokenswap_input[input_argname]:
+            raise ValueError(
+                'Expected "{}" for {} but got "{}"'.format(
+                    self.tokenswap_input[input_argname],
+                    input_argname,
+                    kwargs[argname])
+            )
+
+    def exchange(self, **kwargs):
+        self._check_tokenswap_input('from_token', 'sending_token', kwargs)
+        self._check_tokenswap_input('from_amount', 'sending_amount', kwargs)
+        self._check_tokenswap_input('to_token', 'receiving_token', kwargs)
+        self._check_tokenswap_input('to_amount', 'receiving_amount', kwargs)
+
+    def expect_exchange(self, **kwargs):
+        self._check_tokenswap_input('identifier', 'identifier', kwargs)
+        self._check_tokenswap_input('from_token', 'sending_token', kwargs)
+        self._check_tokenswap_input('from_amount', 'sending_amount', kwargs)
+        self._check_tokenswap_input('to_token', 'receiving_token', kwargs)
+        self._check_tokenswap_input('to_amount', 'receiving_amount', kwargs)
+
+    def transfer(self, token_address, amount, target, identifier):
+        # Do nothing. These tests only test the api endpoints, so nothing to do here
+        pass
