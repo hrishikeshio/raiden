@@ -16,17 +16,17 @@ class NettingChannelMock(object):
 
     def __init__(self, channel_address):
         self.address = channel_address
-        self.state = 'open'
+        self.state = Channel.STATE_OPENED
 
     # pylint: disable=no-self-use
     def opened(self):
-        return self.state == 'open'
+        return self.state == Channel.STATE_OPENED
 
     def closed(self):
-        return self.state == 'closed' or self.state == 'settled'
+        return self.state == Channel.STATE_CLOSED or self.state == Channel.STATE_SETTLED
 
     def settled(self):
-        return self.state == 'settled'
+        return self.state == Channel.STATE_SETTLED
 
 
 def decode_response(response):
@@ -220,13 +220,13 @@ class ApiTestContext():
 
     def close(self, token_address, partner_address):
         channel = self.find_channel(token_address, partner_address)
-        channel.external_state.netting_channel.state = 'closed'
+        channel.external_state.netting_channel.state = Channel.STATE_CLOSED
         channel.external_state._closed_block = 1
         return channel
 
     def settle(self, token_address, partner_address):
         channel = self.find_channel(token_address, partner_address)
-        channel.external_state.netting_channel.state = 'settled'
+        channel.external_state.netting_channel.state = Channel.STATE_SETTLED
         channel.external_state._settled_block = 1
         return channel
 

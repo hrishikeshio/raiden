@@ -67,7 +67,7 @@ from raiden.transfer.mediated_transfer.events import (
     SendRevealSecret,
     SendSecretRequest,
 )
-from raiden.channel import ChannelEndState, ChannelExternalState
+from raiden.channel import Channel, ChannelEndState, ChannelExternalState
 from raiden.exceptions import (
     UnknownAddress,
     TransferWhenClosed,
@@ -662,7 +662,7 @@ class RaidenService(object):
         available_routes = [
             route
             for route in map(route_to_routestate, routes)
-            if route.state == 'opened'
+            if route.state == Channel.STATE_OPENED
         ]
 
         identifier = create_default_identifier(self.address, token_address, target)
@@ -737,7 +737,7 @@ class RaidenService(object):
         available_routes = [
             route
             for route in map(route_to_routestate, routes)
-            if route.state == 'opened'
+            if route.state == Channel.STATE_OPENED
         ]
 
         from_channel = graph.partneraddress_channel[message.sender]

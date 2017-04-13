@@ -70,7 +70,7 @@ def channel_to_routestate(channel, node_address):
     settle_timeout = channel.settle_timeout
     reveal_timeout = channel.reveal_timeout
 
-    if state == 'closed':
+    if state == Channel.STATE_CLOSED:
         closed_block = channel.external_state.closed_block
     else:
         closed_block = None

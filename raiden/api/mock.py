@@ -95,7 +95,7 @@ class MockAPI(object):
                 settle_timeout or DEFAULT_SETTLE_TIMEOUT,
                 reveal_timeout or DEFAULT_REVEAL_TIMEOUT,
                 deposit=0,
-                status=self.STATE_OPEN
+                status=Channel.STATE_OPENED
             )
 
             self._add_channel(channel)
@@ -111,7 +111,7 @@ class MockAPI(object):
         existing_channel = self.channel_by_address[channel_address]
 
         # modify field in place
-        existing_channel.status = existing_channel.STATE_CLOSED
+        existing_channel.status = Channel.STATE_CLOSED
 
         self._mine_new_block_try()
         return existing_channel

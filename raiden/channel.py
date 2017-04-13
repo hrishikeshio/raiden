@@ -486,6 +486,9 @@ class ChannelExternalState(object):
 
 class Channel(object):
     # pylint: disable=too-many-instance-attributes,too-many-arguments,too-many-public-methods
+    STATE_OPENED = 'opened'
+    STATE_CLOSED = 'closed'
+    STATE_SETTLED = 'settled'
 
     def __init__(
             self,
@@ -550,18 +553,15 @@ class Channel(object):
 
         self.received_transfers = []
         self.sent_transfers = []  #: transfers that were sent, required for settling
-        self.STATE_OPEN = 'open'
-        self.STATE_CLOSED = 'closed'
-        self.STATE_SETTLED = 'settled'
 
     @property
     def state(self):
         if self.isopen:
-            return self.STATE_OPEN
+            return Channel.STATE_OPENED
         elif self.external_state.settled_block != 0:
-            return self.STATE_SETTLED
+            return Channel.STATE_SETTLED
         elif self.external_state.closed_block != 0:
-            return self.STATE_CLOSED
+            return Channel.STATE_CLOSED
         else:
             raise Exception('invalid state')
 
@@ -1119,7 +1119,7 @@ class Channel(object):
             self.block_number = state_change.block_number
             settlement_end = self.external_state.closed_block + self.settle_timeout
 
-            if self.state == 'closed' and self.block_number > settlement_end:
+            if self.state == Channel.STATE_CLOSED and self.block_number > settlement_end:
                 self.external_state.settle()
 
         elif isinstance(state_change, ContractReceiveClosed):
