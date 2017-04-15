@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from raiden.transfer.architecture import State
 from raiden.utils import pex
-from raiden.channel import Channel
+# from raiden.channel import Channel
 # pylint: disable=too-few-public-methods,too-many-arguments,too-many-instance-attributes
 
 
@@ -31,10 +31,15 @@ class RouteState(State):
     )
 
     valid_states = (
-        Channel.STATE_OPENED,
-        Channel.STATE_CLOSED,
-        Channel.STATE_SETTLED,
+        'opened',
+        'closed',
+        'settled',
     )
+    # valid_states = (
+    #     Channel.STATE_OPENED,
+    #     Channel.STATE_CLOSED,
+    #     Channel.STATE_SETTLED,
+    # )
 
     def __init__(self,
                  state,
