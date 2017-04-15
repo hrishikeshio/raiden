@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from raiden.channel import Channel
+# from raiden.channel import Channel
 
 
 def update_route(next_state, route_state_change):
