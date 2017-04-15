@@ -10,7 +10,7 @@ from pyethapp.jsonrpc import address_encoder, address_decoder
 from raiden.tests.utils.apitestcontext import decode_response
 from raiden.utils import channel_to_api_dict
 from raiden.tests.utils.transfer import channel
-
+from raiden.channel import Channel
 
 def assert_proper_response(response):
     """ Make sure the API response is of the proper type"""
@@ -47,7 +47,7 @@ def test_channel_to_api_dict(raiden_network, tokens_addresses, settle_timeout):
         'partner_address': app1.raiden.address,
         'settle_timeout': settle_timeout,
         'balance': channel0.contract_balance,
-        'state': 'opened'
+        'state': Channel.STATE_OPENED
     }
     assert result == expected_result
 
@@ -93,7 +93,7 @@ def test_api_open_and_deposit_channel(
     response = decode_response(response)
     expected_response = channel_data_obj
     expected_response['balance'] = 0
-    expected_response['state'] = 'opened'
+    expected_response['state'] = Channel.STATE_OPENED
     # can't know the channel address beforehand but make sure we get one
     assert 'channel_address' in response
     first_channel_address = response['channel_address']
@@ -119,7 +119,7 @@ def test_api_open_and_deposit_channel(
     response = decode_response(response)
     expected_response = channel_data_obj
     expected_response['balance'] = balance
-    expected_response['state'] = 'opened'
+    expected_response['state'] = Channel.STATE_OPENED
     # can't know the channel address beforehand but make sure we get one
     assert 'channel_address' in response
     expected_response['channel_address'] = response['channel_address']
@@ -143,7 +143,7 @@ def test_api_open_and_deposit_channel(
         'partner_address': first_partner_address,
         'token_address': token_address,
         'settle_timeout': settle_timeout,
-        'state': 'opened',
+        'state': Channel.STATE_OPENED,
         'balance': balance
     }
     assert response == expected_response
@@ -165,7 +165,7 @@ def test_api_open_and_deposit_channel(
         'partner_address': second_partner_address,
         'token_address': token_address,
         'settle_timeout': settle_timeout,
-        'state': 'opened',
+        'state': Channel.STATE_OPENED,
         'balance': balance
     }
     assert response == expected_response
@@ -195,7 +195,7 @@ def test_api_open_close_and_settle_channel(
     response = decode_response(response)
     expected_response = channel_data_obj
     expected_response['balance'] = balance
-    expected_response['state'] = 'opened'
+    expected_response['state'] = Channel.STATE_OPENED
     # can't know the channel address beforehand but make sure we get one
     assert 'channel_address' in response
     channel_address = response['channel_address']
@@ -209,7 +209,7 @@ def test_api_open_close_and_settle_channel(
             'channelsresourcebychanneladdress',
             channel_address=channel_address
         ),
-        json={'state': 'closed'}
+        json={'state': Channel.STATE_CLOSED}
     )
     response = request.send().response
     assert_proper_response(response)
@@ -219,7 +219,7 @@ def test_api_open_close_and_settle_channel(
         'partner_address': partner_address,
         'token_address': token_address,
         'settle_timeout': settle_timeout,
-        'state': 'closed',
+        'state': Channel.STATE_CLOSED,
         'balance': balance
     }
     assert response == expected_response
@@ -231,7 +231,7 @@ def test_api_open_close_and_settle_channel(
             'channelsresourcebychanneladdress',
             channel_address=channel_address
         ),
-        json={'state': 'settled'}
+        json={'state': Channel.STATE_SETTLED}
     )
     response = request.send().response
     assert_proper_response(response)
@@ -241,7 +241,7 @@ def test_api_open_close_and_settle_channel(
         'partner_address': partner_address,
         'token_address': token_address,
         'settle_timeout': settle_timeout,
-        'state': 'settled',
+        'state': Channel.STATE_SETTLED,
         'balance': balance
     }
     assert response == expected_response
@@ -276,7 +276,7 @@ def test_api_channel_state_change_errors(
             'channelsresourcebychanneladdress',
             channel_address=channel_address
         ),
-        json={'state': 'settled'}
+        json={'state': Channel.STATE_SETTLED}
     )
     response = request.send().response
     assert response is not None and response.status_code == httplib.CONFLICT
@@ -298,7 +298,7 @@ def test_api_channel_state_change_errors(
             'channelsresourcebychanneladdress',
             channel_address=channel_address
         ),
-        json={'state': 'closed', 'balance': 200}
+        json={'state': Channel.STATE_CLOSED, 'balance': 200}
     )
     response = request.send().response
     assert response is not None and response.status_code == httplib.CONFLICT
@@ -320,7 +320,7 @@ def test_api_channel_state_change_errors(
             'channelsresourcebychanneladdress',
             channel_address=channel_address
         ),
-        json={'state': 'closed'}
+        json={'state': Channel.STATE_CLOSED}
     )
     response = request.send().response
     assert_proper_response(response)
@@ -330,7 +330,7 @@ def test_api_channel_state_change_errors(
             'channelsresourcebychanneladdress',
             channel_address=channel_address
         ),
-        json={'state': 'settled'}
+        json={'state': Channel.STATE_SETTLED}
     )
     response = request.send().response
     assert_proper_response(response)
@@ -354,7 +354,7 @@ def test_api_channel_state_change_errors(
             'channelsresourcebychanneladdress',
             channel_address=channel_address
         ),
-        json={'state': 'settled'}
+        json={'state': Channel.STATE_SETTLED}
     )
     response = request.send().response
     assert response is not None and response.status_code == httplib.CONFLICT

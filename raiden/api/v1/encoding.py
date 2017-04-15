@@ -22,6 +22,7 @@ from raiden.api.objects import (
     PartnersPerTokenList
 )
 from raiden.settings import DEFAULT_SETTLE_TIMEOUT
+from raiden.channel import Channel
 
 
 # type converter for the flask route
@@ -148,7 +149,11 @@ class ChannelSchema(BaseSchema):
     settle_timeout = fields.Integer()
     reveal_timeout = fields.Integer()
     balance = fields.Integer()
-    state = fields.String(validate=validate.OneOf(['closed', 'opened', 'settled']))
+    state = fields.String(validate=validate.OneOf([
+        Channel.STATE_CLOSED,
+        Channel.STATE_OPENED,
+        Channel.STATE_SETTLED,
+    ]))
 
     class Meta:
         strict = True
@@ -164,7 +169,11 @@ class ChannelRequestSchema(BaseSchema):
     state = fields.String(
         default=None,
         missing=None,
-        validate=validate.OneOf(['closed', 'opened', 'settled'])
+        validate=validate.OneOf([
+            Channel.STATE_CLOSED,
+            Channel.STATE_OPENED,
+            Channel.STATE_SETTLED,
+        ])
     )
 
     class Meta:
