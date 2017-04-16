@@ -47,7 +47,8 @@ if [ ! -x $HOME/.bin/parity-${PARITY_VERSION} ]; then
 
     TEMP=$(mktemp -d)
     cd $TEMP
-    wget -O parity $PARITY_URL
+    # using curl becase wget doesn't work on mac
+    curl $PARITY_URL -o parity
 
     install -m 755 parity $HOME/.bin/parity-${PARITY_VERSION}
 
