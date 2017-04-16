@@ -10,7 +10,11 @@ from raiden.settings import (
     DEFAULT_REVEAL_TIMEOUT,
     DEFAULT_SETTLE_TIMEOUT,
 )
-
+from raiden.transfer.state import (
+    CHANNEL_STATE_OPENED,
+    CHANNEL_STATE_CLOSED,
+    CHANNEL_STATE_SETTLED,
+)
 from raiden.utils import make_address
 
 
@@ -95,7 +99,7 @@ class MockAPI(object):
                 settle_timeout or DEFAULT_SETTLE_TIMEOUT,
                 reveal_timeout or DEFAULT_REVEAL_TIMEOUT,
                 deposit=0,
-                status=Channel.STATE_OPENED
+                status=CHANNEL_STATE_OPENED
             )
 
             self._add_channel(channel)
@@ -111,7 +115,7 @@ class MockAPI(object):
         existing_channel = self.channel_by_address[channel_address]
 
         # modify field in place
-        existing_channel.status = Channel.STATE_CLOSED
+        existing_channel.status = CHANNEL_STATE_CLOSED
 
         self._mine_new_block_try()
         return existing_channel

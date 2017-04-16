@@ -7,7 +7,12 @@ from raiden.transfer.state import (
 from raiden.transfer.mediated_transfer.state import (
     LockedTransferState,
 )
-from raiden.channel import Channel
+
+from raiden.transfer.state import (
+    CHANNEL_STATE_OPENED,
+    CHANNEL_STATE_CLOSED,
+    CHANNEL_STATE_SETTLED,
+)
 
 # prefixing with UNIT_ to differ from the default globals
 UNIT_SETTLE_TIMEOUT = 50
@@ -52,7 +57,7 @@ def make_route(
     if channel_address is None:
         channel_address = ('channel' + node_address)[:40]
 
-    state = Channel.STATE_OPENED
+    state = CHANNEL_STATE_OPENED
     route = RouteState(
         state,
         node_address,
