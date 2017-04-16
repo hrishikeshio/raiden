@@ -27,7 +27,6 @@ from raiden.transfer.mediated_transfer.state_change import (
     ContractReceiveSettled,
 )
 
-
 log = slogging.getLogger(__name__)  # pylint: disable=invalid-name
 
 # A lock and it's computed hash, this namedtuple is used to keep the
