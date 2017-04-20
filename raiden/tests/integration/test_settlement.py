@@ -119,7 +119,7 @@ def test_settlement(raiden_network, settle_timeout, reveal_timeout):
     assert alice_bob_channel.external_state.settled_block == 0
     assert bob_alice_channel.external_state.settled_block == 0
 
-    # withdraw will not be called by Channel.channel_closed because we did not
+    # unlock will not be called by Channel.channel_closed because we did not
     # register the secret
     assert lock.expiration > alice_app.raiden.chain.block_number()
     assert lock.hashlock == sha3(secret)
@@ -199,9 +199,9 @@ def test_settled_lock(tokens_addresses, raiden_network, settle_timeout, reveal_t
         last_transfer,
     )
 
-    # check that the double withdraw will failed
+    # check that the double unlock will failed
     with pytest.raises(Exception):
-        back_channel.external_state.netting_channel.withdraw(
+        back_channel.external_state.netting_channel.unlock(
             app1.raiden.address,
             [(unlock_proof, secret_transfer.lock.as_bytes, secret)],
         )
@@ -274,7 +274,7 @@ def test_start_end_attack(tokens_addresses, raiden_chain, deposit, reveal_timeou
     wait_until_block(app2.raiden.chain, attack_transfer.lock.expiration - 1)
 
     # since the attacker knows the secret he can net the lock
-    attack_channel.netting_channel.withdraw(
+    attack_channel.netting_channel.unlock(
         [(unlock_proof, attack_transfer.lock, secret)],
     )
     # XXX: verify that the secret was publicized
