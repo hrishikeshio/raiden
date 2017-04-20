@@ -1001,7 +1001,7 @@ class NettingChannel(object):
 
         for merkle_proof, locked_encoded, secret in unlock_proofs:
             if isinstance(locked_encoded, messages.Lock):
-                raise ValueError('unlock must be called with a lock encoded `.as_bytes`')
+                raise ValueError('withdraw must be called with a lock encoded `.as_bytes`')
 
             merkleproof_encoded = ''.join(merkle_proof)
 
@@ -1026,7 +1026,7 @@ class NettingChannel(object):
             # if log.getEffectiveLevel() >= logging.INFO:  # only decode the lock if need to
             lock = messages.Lock.from_bytes(locked_encoded)
             log.info(
-                'unlock called',
+                'withdraw called',
                 contract=pex(self.address),
                 lock=lock,
                 secret=encode_hex(secret),
