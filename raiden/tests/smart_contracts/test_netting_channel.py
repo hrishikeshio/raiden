@@ -1202,3 +1202,4 @@ def test_netting(deposit, settle_timeout, tester_channels, tester_state, tester_
     assert tester_token.balanceOf(nettingchannel.address, sender=pkey1) == 0
     assert tester_token.balanceOf(address0, sender=pkey0) == balance0
     assert tester_token.balanceOf(address1, sender=pkey1) == balance1
+    
