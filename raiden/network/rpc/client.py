@@ -397,6 +397,9 @@ class Filter(object):
             return []
 
         result = list()
+        print filter_changes
+        log.error(filter_changes)
+        log.error("LOL")
         for log_event in filter_changes:
             address = address_decoder(log_event['address'])
             data = data_decoder(log_event['data'])
