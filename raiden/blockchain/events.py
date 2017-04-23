@@ -4,6 +4,8 @@ from collections import namedtuple, defaultdict
 
 from pyethapp.jsonrpc import address_decoder
 
+from ethereum import slogging
+
 from raiden.blockchain.abi import (
     REGISTRY_TRANSLATOR,
     CHANNEL_MANAGER_TRANSLATOR,
@@ -36,6 +38,8 @@ PyethappProxies = namedtuple(
 
 # Pyethapp's `new_filter` uses None to signal the absence of topics filters
 ALL_EVENTS = None
+
+log = slogging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def poll_event_listener(pyethapp_filter, translator):
