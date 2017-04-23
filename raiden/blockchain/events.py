@@ -42,6 +42,8 @@ def poll_event_listener(pyethapp_filter, translator):
     result = list()
 
     for log_event in pyethapp_filter.changes():
+        log.debug("LOL")
+        log.debug(log_event)
         decoded_event = translator.decode_event(
             log_event['topics'],
             log_event['data'],
